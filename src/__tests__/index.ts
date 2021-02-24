@@ -1,4 +1,4 @@
-import pluggableReactor from "../index";
+import pluggableWrapex from "../index";
 import { autorun, runInAction } from "mobx";
 import "jest";
 
@@ -8,10 +8,10 @@ type TestType = {
   b: string;
 };
 
-describe("basic reactor", () => {
-  const basicReactor = pluggableReactor([]);
+describe("basic wrappex", () => {
+  const basicWrappex = pluggableWrapex([]);
 
-  const testTypeFactory = basicReactor({
+  const testTypeFactory = basicWrappex({
     typename: "TestType",
     init: {} as TestType,
     fields: ["a", "b"],
@@ -79,10 +79,10 @@ describe("basic reactor", () => {
   });
 });
 
-describe("modified reactor", () => {
-  const basicReactor = pluggableReactor([]);
+describe("modified wrappex", () => {
+  const basicWrappex = pluggableWrapex([]);
 
-  const testTypeFactoryModified = basicReactor({
+  const testTypeFactoryModified = basicWrappex({
     typename: "TestType",
     init: {} as TestType,
     fields: ["a", "b"],
@@ -117,5 +117,39 @@ describe("modified reactor", () => {
   it("clone works with proxy", () => {
     const obj = testTypeFactoryModified({ id: 3 });
     expect(obj.clone().a).toEqual("default string");
+  });
+});
+
+describe("wrappex", () => {
+  const basicWrappex = pluggableWrapex([
+    (pArgs: { testPluginArg: number }, args, instanceMap) => (obj: any) => {
+      return {
+        objectModification: {
+          create: () => {
+            obj.id = ++pArgs.testPluginArg;
+            instanceMap;
+          },
+        },
+        reactionCallback: (field, v) => {
+          obj.id = +v;
+        },
+      };
+    },
+  ]);
+
+  const testTypeFactoryModified = basicWrappex({
+    typename: "TestType",
+    init: {} as TestType,
+    fields: ["a", "b"],
+    testPluginArg: 1,
+  });
+  it("fields from plugins work", () => {
+    const obj = testTypeFactoryModified({});
+    expect(obj.create).toBeDefined();
+    expect(obj.id).toEqual(undefined);
+    obj.create();
+    expect(obj.id).toEqual(2);
+    obj.b = "23";
+    expect(obj.id).toEqual(23);
   });
 });

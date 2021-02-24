@@ -92,3 +92,5 @@ export type UnionToIntersection<T> = (
 export type SafeFirstParameter<
   T extends (...args: any) => any
 > = Parameters<T>[0] extends undefined ? {} : Parameters<T>[0];
+
+export type LeftPrecedenceUnion<L, R> = L & Omit<R, keyof L>;

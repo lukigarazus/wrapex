@@ -11,22 +11,36 @@ import { capitalize } from "./utils";
 
 const instanceMap = new Map();
 
-const pluggableReactor = <
+const pluggableWrapex = <
   Plugins extends readonly ((
-    ...args: any
-  ) => (...args: any) => { objectModification: any; reactionCallback: any })[]
+    pluginArgs: any,
+    args: Types.InitialArguments<
+      Record<string, any>,
+      string[],
+      Record<string, any>
+    > &
+      unknown,
+    instanceMap: Map<string, any>
+  ) => (
+    obj: any
+  ) => {
+    objectModification: any;
+    reactionCallback: (field: string, value: any) => void;
+  })[]
 >(
   plugins: Plugins
 ) =>
-  function reactor<
+  function wrapex<
     Type extends { id: number },
     Keys extends (keyof Type)[],
     Modifier extends Partial<Types.ObjectToGettersAndSetters<Type>> & {
       [key: string]: unknown;
     } = {}
   >(
-    args: Types.InitialArguments<Type, Keys, Modifier> &
+    args: Types.LeftPrecedenceUnion<
+      Types.InitialArguments<Type, Keys, Modifier>,
       Types.UnionToIntersection<Types.SafeFirstParameter<Plugins[number]>>
+    >
   ): (
     init: Partial<Type>,
     modifier2?: Modifier
@@ -54,6 +68,8 @@ const pluggableReactor = <
     if (!instanceMap.has(typename)) {
       instanceMap.set(typename, new Map());
     }
+
+    const seededPlugins = plugins.map((p) => p(args, args as any, instanceMap));
 
     const curried = (init: Partial<Type>, modifier2?: Modifier) => {
       // @ts-ignore
@@ -119,6 +135,14 @@ const pluggableReactor = <
         },
       };
 
+      const reactionCallbacks = seededPlugins.map((p) => {
+        const plugin = p(obj);
+        Object.entries(plugin.objectModification).forEach(([k, v]) => {
+          obj[k] = v;
+        });
+        return plugin.reactionCallback;
+      });
+
       // define all fields up front
       fields.forEach((field) => {
         // @ts-ignore
@@ -150,7 +174,9 @@ const pluggableReactor = <
           disposers.push(
             reaction(
               () => obj[field],
-              (v: any) => {}
+              (v: any) => {
+                reactionCallbacks.forEach((c) => c(field, v));
+              }
             )
           );
       });
@@ -197,4 +223,4 @@ const pluggableReactor = <
     return curried;
   };
 
-export default pluggableReactor;
+export default pluggableWrapex;
