@@ -11,25 +11,7 @@ import { capitalize } from "./utils";
 
 const instanceMap = new Map();
 
-const pluggableWrapex = <
-  Plugins extends readonly ((
-    pluginArgs: any,
-    args: Types.InitialArguments<
-      Record<string, any>,
-      string[],
-      Record<string, any>
-    > &
-      unknown,
-    instanceMap: Map<string, any>
-  ) => (
-    obj: any
-  ) => {
-    objectModification: any;
-    reactionCallback: (field: string, value: any) => void;
-  })[]
->(
-  plugins: Plugins
-) =>
+const pluggableWrapex = <Plugins extends Types.Plugin>(plugins: Plugins) =>
   function wrapex<
     Type extends { id: number },
     Keys extends (keyof Type)[],

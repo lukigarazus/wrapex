@@ -94,3 +94,15 @@ export type SafeFirstParameter<
 > = Parameters<T>[0] extends undefined ? {} : Parameters<T>[0];
 
 export type LeftPrecedenceUnion<L, R> = L & Omit<R, keyof L>;
+
+export type Plugin = readonly ((
+  pluginArgs: any,
+  args: InitialArguments<Record<string, any>, string[], Record<string, any>> &
+    unknown,
+  instanceMap: Map<string, any>
+) => (
+  obj: any
+) => {
+  objectModification: any;
+  reactionCallback: (field: string, value: any) => void;
+})[];
