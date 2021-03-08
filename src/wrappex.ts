@@ -70,7 +70,7 @@ const pluggableWrapex = <Plugins extends Types.WrappexPlugin>(
       }
 
       let updateable = true;
-      // let disposed = observable.box(false);
+      let disposed = observable.box(false);
       const ctx = {};
 
       // @ts-ignore
@@ -95,7 +95,7 @@ const pluggableWrapex = <Plugins extends Types.WrappexPlugin>(
 
         dispose: () => {
           instanceMap.delete(String(obj.id));
-          obj._disposed = true;
+          disposed.set(true);
           disposers.forEach((d) => d());
           fields.forEach((f) => {
             delete obj[f];
@@ -107,10 +107,8 @@ const pluggableWrapex = <Plugins extends Types.WrappexPlugin>(
           return updateable;
         },
 
-        _disposed: false,
-
         get disposed() {
-          return obj._disposed;
+          return disposed.get();
         },
 
         enableUpdates: () => {
