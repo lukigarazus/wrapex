@@ -3,4 +3,4 @@
 /coverage
 /__tests__
 README.md
-jset.config.js
+jest.config.js

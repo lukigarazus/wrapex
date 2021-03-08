@@ -1,6 +1,6 @@
 {
   "name": "wrappex",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "main": "./dist/index.js",
   "types": "./types/index.d.ts",
   "license": "MIT",
