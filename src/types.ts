@@ -1,4 +1,4 @@
-export type ReturnTypo<T> = T & {
+export type Wrappex<T> = T & {
   snapshot: any;
   disposed: boolean;
   dispose: () => void;
@@ -6,9 +6,21 @@ export type ReturnTypo<T> = T & {
   disableUpdates: () => void;
   enableUpdates: () => void;
   addObservableKey: (key: string, value: any) => void;
-  clone: () => ReturnTypo<T>;
+  clone: () => Wrappex<T>;
   getCtx: () => { [key: string]: any };
 };
+
+export type WrappexPlugin = readonly ((
+  pluginArgs: any,
+  args: InitialArguments<Record<string, any>, string[], Record<string, any>> &
+    unknown,
+  instanceMap: Map<string, any>
+) => (
+  obj: any
+) => {
+  objectModification: any;
+  reactionCallback: (field: string, value: any) => void;
+})[];
 
 // --------------------------------------------------------------------
 
@@ -48,10 +60,10 @@ export type ObjectFromGetters<T extends { [key: string]: any }> = {
   [key in KeyFromSetterAndGetter<keyof T>]: ReturnType<T[KeyToGetter<key>]>;
 };
 
-export type Getter<T, R> = (obj: ReturnTypo<T>, ctx: any) => R | null;
+export type Getter<T, R> = (obj: Wrappex<T>, ctx: any) => R | null;
 
 export type Setter<T, R> = (
-  obj: ReturnTypo<T>,
+  obj: Wrappex<T>,
   value: R | null,
   ctx: any
 ) => boolean;
@@ -95,14 +107,4 @@ export type SafeFirstParameter<
 
 export type LeftPrecedenceUnion<L, R> = L & Omit<R, keyof L>;
 
-export type Plugin = readonly ((
-  pluginArgs: any,
-  args: InitialArguments<Record<string, any>, string[], Record<string, any>> &
-    unknown,
-  instanceMap: Map<string, any>
-) => (
-  obj: any
-) => {
-  objectModification: any;
-  reactionCallback: (field: string, value: any) => void;
-})[];
+// ------------------------------------------------------

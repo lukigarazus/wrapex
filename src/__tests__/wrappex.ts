@@ -1,4 +1,4 @@
-import pluggableWrapex from "../index";
+import pluggableWrapex from "../wrappex";
 import { autorun, runInAction } from "mobx";
 import "jest";
 
@@ -36,11 +36,18 @@ describe("basic wrappex", () => {
       expect(obj.clone().snapshot()).toEqual(obj.snapshot());
     });
     it("Dispose works", () => {
+      const f = jest.fn();
       const obj = testTypeFactory({});
+      autorun(() => {
+        obj.disposed;
+        f();
+      });
+      expect(f).toHaveBeenCalledTimes(1);
       expect(obj.disposed).toBe(false);
       expect(obj.dispose());
       expect(obj.disposed).toBe(true);
       expect(obj.updateable).toBe(false);
+      expect(f).toHaveBeenCalledTimes(2);
     });
     it("Add observable key works", () => {
       const obj = testTypeFactory({});
@@ -120,7 +127,7 @@ describe("modified wrappex", () => {
   });
 });
 
-describe("wrappex", () => {
+describe("plugged wrappex", () => {
   const basicWrappex = pluggableWrapex([
     (pArgs: { testPluginArg: number }, args, instanceMap) => (obj: any) => {
       return {
